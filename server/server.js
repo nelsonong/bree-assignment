@@ -7,20 +7,16 @@ const faunadb = require("faunadb");
 dotenv.config();
 
 // This client does not have write privileges
-const client = new faunadb.Client({ secret: process.env.FAUNDB_SECRET_KEY });
+const client = new faunadb.Client({ secret: process.env.FAUNADB_SECRET_KEY });
 
 // FQL functions
 const {
-    Ref,
     Paginate,
     Documents,
     Get,
     Match,
-    Select,
     Index,
-    Create,
     Collection,
-    Join,
     Map,
     Lambda,
 } = faunadb.query;
@@ -30,34 +26,35 @@ app.use(cors());
 
 // Return the list of users
 app.get('/users', async (req, res) => {
-    try {
-        const docs = await client.query(
-            Map(
-                Paginate(Documents(Collection('Users'))),
-                Lambda(x => Get(x))
-            )
-        );
-        const users = docs.data.map(doc => doc.data);
-        res.send(users);
-    } catch (e) {
-        res.send(e);
-    }
+    const docs = await client.query(
+        Map(
+            Paginate(Documents(Collection('Users'))),
+            Lambda(x => Get(x))
+        )
+    );
+    const users = docs.data.map(doc => doc.data);
+    res.send(users);
 });
 
 // Process transactions from an email into useful display info on client
 const processIncomeTransactions = async (transactions) => {
+    // The window of days to consider a date to still be "recurring"
+    const bufferDays = Number(process.env.BUFFER_DAYS) || 5;
+
+    // Create map of source to transactions
     let transactionsBySource = {};
     transactions.forEach(transaction => {
         const {name, date, amount} = transaction;
         if (amount > 0) {
             const source = name.toLowerCase();
-            if (transactionsBySource[source] == undefined) {
+            if (transactionsBySource[source] === undefined) {
                 transactionsBySource[source] = [];
             }
             transactionsBySource[source].push({date, amount});
         }
     });
 
+    // Generate a list of recurring source objects to return
     let recurringSources = [];
     for (const source in transactionsBySource) {
         // Sort transactions by date
@@ -79,7 +76,7 @@ const processIncomeTransactions = async (transactions) => {
                 const [previousTransaction] = processedTransactions.slice(-1);
                 
                 // If 2 income sources come on the same day, treat them as 1
-                if (previousTransaction.date == date) {
+                if (previousTransaction.date === date) {
                     processedTransactions[processedTransactions.length - 1].amount += amount;
                     return;
                 }
@@ -100,15 +97,14 @@ const processIncomeTransactions = async (transactions) => {
         processedTransactions.forEach(transaction => {
             const { daysFromLastPayment } = transaction;
             // Use first found days between payments as estimate for benchmark
-            if (estDaysBetweenPayments == -1 && daysFromLastPayment != -1) {
+            if (estDaysBetweenPayments === -1 && daysFromLastPayment !== -1) {
                 estDaysBetweenPayments = daysFromLastPayment;
                 return;
             }
             
             // Give payment days a buffer window (optional)
-            const buffer = 10;
-            const upperDaysAmount = estDaysBetweenPayments + buffer;
-            const lowerDaysAmount = estDaysBetweenPayments - buffer;
+            const upperDaysAmount = estDaysBetweenPayments + bufferDays;
+            const lowerDaysAmount = estDaysBetweenPayments - bufferDays;
             if (daysFromLastPayment > upperDaysAmount || daysFromLastPayment < lowerDaysAmount) {
                 recurring = false;
                 return;
