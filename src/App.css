@@ -28,6 +28,11 @@
   background-color: lightGray;
 }
 
+/* Pane info */
+.pane {
+  padding: 0 2em;
+}
+
 /* Rounded border */
 hr.left {
   border-top: 8px solid lightGray;

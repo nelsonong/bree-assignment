@@ -10,7 +10,8 @@ function App() {
   // Load user data
   const loadUserData = async () => {
     const userData = await fetch("http://localhost:8000/users")
-      .then(response => response.json());
+      .then(response => response.json())
+      .catch(e => console.log(e));
 
     // Update user data
     setUsers(userData);
@@ -21,7 +22,8 @@ function App() {
     e.preventDefault();
 
     const predictionData = await fetch(`http://localhost:8000/predictions/${email}`)
-      .then(response => response.json());
+      .then(response => response.json())
+      .catch(e => console.log(e));
 
     // Update user predictions
     setPredictions(predictionData);
@@ -37,36 +39,43 @@ function App() {
       <div className="split left">
         <h3>Users</h3>
         <hr className="rounded left" />
-        <ListGroup>
-          { users &&
-            users.map(user => {
-              const {firstName, lastName, email} = user;
-              return (
-                <ListGroup.Item action key={email} href={email} onClick={(e) => loadPredictions(e, email)}>
-                  {firstName} {lastName} - {email}
-                </ListGroup.Item>
-              )
-            })
-          }
-        </ListGroup>
+        <div className="pane">
+          <ListGroup>
+            { users &&
+              users.map(user => {
+                const {firstName, lastName, email} = user;
+                return (
+                  <ListGroup.Item action key={email} href={email} onClick={(e) => loadPredictions(e, email)}>
+                    {firstName} {lastName} - {email}
+                  </ListGroup.Item>
+                )
+              })
+            }
+          </ListGroup>
+        </div>
       </div>
       <div className="split right">
         <h3>Recurring Income</h3>
         <hr className="rounded right" />
-        <ListGroup>
-          { predictions &&
-            predictions.map(prediction => {
-              const {source, averagePayment, mostRecentPayment, estimatedPayDate} = prediction;
-              return (
-                <ListGroup.Item key={source}>
-                  <h6>Source: {source}</h6> <br />
-                  Average Payment: ${averagePayment} // Most Recent Payment: ${mostRecentPayment} <br />
-                  Next Estimated Pay Date: {estimatedPayDate}
-                </ListGroup.Item>
-              )
-            })
-          }
-        </ListGroup>
+        <div className="pane">
+          <ListGroup>
+            { predictions.length === 0 &&
+              <h6>No recurring income detected for user. Try increasing buffer window on server to detect more results.</h6>
+            }
+            { predictions.length > 0 &&
+              predictions.map(prediction => {
+                const {source, averagePayment, mostRecentPayment, estimatedPayDate} = prediction;
+                return (
+                  <ListGroup.Item key={source}>
+                    <h6>Source: {source}</h6> <br />
+                    Average Payment: ${averagePayment} — Most Recent Payment: ${mostRecentPayment} <br />
+                    Next Estimated Pay Date: {estimatedPayDate}
+                  </ListGroup.Item>
+                )
+              })
+            }
+          </ListGroup>
+        </div>
       </div>
     </div>
   );
