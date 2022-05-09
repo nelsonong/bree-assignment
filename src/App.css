@@ -1,3 +1,40 @@
 .App {
   text-align: center;
+  font-size: calc(1.2vmin);
+  background-color: #282c34;
+}
+
+/* Split the screen in half */
+.split {
+  height: 100%;
+  width: 50%;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  overflow-x: hidden;
+  padding-top: 20px;
+}
+
+/* Control the left side */
+.left {
+  left: 0;
+  color: white;
+  background-color: #282c34;
+}
+
+/* Control the right side */
+.right {
+  right: 0;
+  background-color: lightGray;
+}
+
+/* Rounded border */
+hr.left {
+  border-top: 8px solid lightGray;
+  border-radius: 5px;
+}
+
+hr.right {
+  border-top: 8px solid black;
+  border-radius: 5px;
 }
