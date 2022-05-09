@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
   const [users, setUsers] = useState([]);
-  const [predictions, setPredictions] = useState('');
+  const [predictions, setPredictions] = useState([]);
   
   // Load user data
   const loadUserData = async () => {
@@ -24,7 +24,7 @@ function App() {
       .then(response => response.json());
 
     // Update user predictions
-    setPredictions(JSON.stringify(predictionData));
+    setPredictions(predictionData);
   }
 
   // Get and load user data on load
@@ -51,9 +51,22 @@ function App() {
         </ListGroup>
       </div>
       <div className="split right">
-        <h3>Predictions</h3>
+        <h3>Recurring Income</h3>
         <hr className="rounded right" />
-        <p>{predictions}</p>
+        <ListGroup>
+          { predictions &&
+            predictions.map(prediction => {
+              const {source, averagePayment, mostRecentPayment, estimatedPayDate} = prediction;
+              return (
+                <ListGroup.Item key={source}>
+                  <h6>Source: {source}</h6> <br />
+                  Average Payment: ${averagePayment} // Most Recent Payment: ${mostRecentPayment} <br />
+                  Next Estimated Pay Date: {estimatedPayDate}
+                </ListGroup.Item>
+              )
+            })
+          }
+        </ListGroup>
       </div>
     </div>
   );
